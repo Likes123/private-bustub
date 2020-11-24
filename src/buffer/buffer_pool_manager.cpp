@@ -49,6 +49,13 @@ bool BufferPoolManager::UnpinPageImpl(page_id_t page_id, bool is_dirty) { return
 
 bool BufferPoolManager::FlushPageImpl(page_id_t page_id) {
   // Make sure you call DiskManager::WritePage!
+  for (size_t i = 0; i < pool_size_; i++) {
+    if (pages_[i].IsDirty()) {
+      pages_[i].RLatch();
+      disk_manager_->WritePage(pages_[i].GetPageId(), pages_[i].GetData());
+      pages_[i].RUnlatch();
+    }
+  }
   return false;
 }
 
